@@ -8,7 +8,7 @@ const app = express();
 
 // middleware 
 app.use(cors());
-app.use(express());
+app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.ikwqeh8.mongodb.net/?retryWrites=true&w=majority`;
@@ -21,6 +21,17 @@ async function run() {
   try {
     const categoryCollection = client.db('pirates-hut').collection('products-category');
     const productsCollection = client.db('pirates-hut').collection('products');
+    const bookedItemCollection = client.db('pirates-hut').collection('booked-items');
+
+    //  post booked item
+
+    app.post('/bookItem', async (req, res) => {
+      const item = req.body;
+      const result = await bookedItemCollection.insertOne(item);
+      res.send(result)
+
+    })
+
 
 
     //  get categories 
@@ -44,7 +55,6 @@ async function run() {
 
     app.get('/products/:category', async (req, res) => {
       const category = req.params.category;
-      console.log(category);
       const query = {
         category: category
       }
