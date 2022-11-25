@@ -19,11 +19,12 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 // verify jwt token
 
 function verifyJWT(req, res, next) {
-  const userAuth = req.headers.authorization;
+  console.log('shafin');
+  const userAuth = req.headers?.authorization;
+  console.log('userAuth', userAuth);
   if (!userAuth) {
     return res.status(401).send('Unauthorized Access')
   }
-
   const token = userAuth.split(' ')[1];
   jwt.verify(token, process.env.ACCESS_TOKEN, (
     err, decoded) => {
@@ -31,6 +32,7 @@ function verifyJWT(req, res, next) {
       return res.status(403).send({ message: 'forbidden Access' })
     }
     req.decoded = decoded;
+
     next();
   })
 
@@ -91,6 +93,30 @@ async function run() {
       res.send(result);
     })
 
+
+
+    // get jwt token 
+    app.get('/getjwt', async (req, res) => {
+      const email = req.query?.email;
+      const query = {
+        email: email
+      };
+      console.log(query);
+      const user = await userCollection.findOne(query);
+      if (user) {
+        const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
+        return res.send({ accessToken: token })
+      }
+      res.status(403).send({ accessToken: '' });
+
+    })
+
+
+
+
+
+
+
     app.put('/googlelogin', async (req, res) => {
       let user = req.body;
       const filter = {
@@ -113,20 +139,27 @@ async function run() {
 
     // get my orders
     app.get('/myorders', verifyJWT, async (req, res) => {
+      console.log('object');
       const email = req.query?.email;
-      const decodedEmail = req.decoded.email;
+      console.log(email);
+      const decodedEmail = req.decoded?.email;
+      console.log('decodedEmail', decodedEmail);
       if (email !== decodedEmail) {
+        console.log('melenai');
         return res.status(403).send({ message: 'forbidden Access' })
       }
       const query = {
         email: email
       }
       const result = await bookedItemCollection.find(query).toArray();
+      console.log(result);
+
+
       res.send(result);
     })
 
 
-    // get all users  
+    // get  users  
     app.get('/users', async (req, res) => {
       const email = req.query?.email;
       if (email) {
@@ -206,22 +239,7 @@ async function run() {
     })
 
 
-    // get jwt token 
-    app.get('/getjwt', async (req, res) => {
-      const email = req.query?.email;
 
-      const query = {
-        email: email
-      };
-      console.log(query);
-      const user = await userCollection.findOne(query);
-      if (user) {
-        const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
-        return res.send({ accessToken: token })
-      }
-      res.status(403).send({ accessToken: '' });
-
-    })
 
 
 
