@@ -49,6 +49,7 @@ async function run() {
     const productsCollection = client.db('pirates-hut').collection('products');
     const bookedItemCollection = client.db('pirates-hut').collection('booked-items');
     const userCollection = client.db('pirates-hut').collection('users');
+    const advertiseCollection = client.db('pirates-hut').collection('advertiseitem');
 
     //  post booked item
 
@@ -76,14 +77,102 @@ async function run() {
     // get my products
 
     app.get('/myproducts', async (req, res) => {
-      const email = req?.query?.email;
+      const email = req.query?.email;
       const query = {
         email: email
       }
+
       const result = productsCollection.find(query);
       const myproducts = await result.toArray();
       res.send(myproducts)
     })
+
+
+
+
+
+
+    //   add to advertise
+
+    app.put('/addtoadvertise', async (req, res) => {
+      const advertiseItem = req.body;
+      // console.log(advertiseItem);
+      const id = req.query.id;
+
+      const filter = {
+        _id: ObjectId(id)
+      }
+      console.log(filter);
+      const options = { upsert: true };
+      console.log(advertiseItem);
+
+
+      const updatedDoc = {
+        $set: {
+          category: advertiseItem.category,
+          location: advertiseItem.location,
+          phone: advertiseItem.phone,
+          price: advertiseItem.price,
+          title: advertiseItem.title,
+          description: advertiseItem.description,
+          email: advertiseItem.email,
+          purchaseyear: advertiseItem.purchaseyear,
+          originalprice: advertiseItem.originalprice,
+          condition: advertiseItem.condition,
+          postdate: advertiseItem.postdate,
+          price: advertiseItem.price,
+          availibility: advertiseItem.availibility,
+          advertise: 'advertised'
+        }
+      }
+      const result = await advertiseCollection.updateOne(filter, updatedDoc, options);
+
+      res.send(result);
+    })
+
+
+    // get all adertised items 
+    app.get('/advertisedItem', async (req, res) => {
+      const query = {
+        advertise: 'advertised'
+      }
+      const items = await advertiseCollection.find(query).toArray();
+      console.log(items);
+      res.send(items)
+    })
+
+
+
+
+    // google user login
+
+    app.put('/googlelogin', async (req, res) => {
+      let user = req.body;
+      const filter = {
+        email: user?.email
+      }
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          name: user.name,
+          email: user?.email,
+          photoURL: user?.photoURL
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc, options)
+      res.send(result)
+
+
+    })
+
+
+
+
+
+
+
+
+
 
 
     // create user
@@ -117,24 +206,7 @@ async function run() {
 
 
 
-    app.put('/googlelogin', async (req, res) => {
-      let user = req.body;
-      const filter = {
-        email: user?.email
-      }
-      const options = { upsert: true };
-      const updatedDoc = {
-        $set: {
-          name: user.name,
-          email: user?.email,
-          photoURL: user?.photoURL
-        }
-      }
-      const result = await userCollection.updateOne(filter, updatedDoc, options)
-      res.send(result)
 
-
-    })
 
 
     // get my orders
@@ -208,6 +280,27 @@ async function run() {
       res.send(result);
     })
 
+
+    // delete product
+
+    app.delete('/deletemyproduct/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+
+      const filter = { _id: ObjectId(id) };
+      const result = await productsCollection.deleteOne(filter);
+      res.send(result)
+    })
+
+    // delete adveriseprduct
+
+    app.delete('/deleteadvertiseproduct/:email', async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      console.log(filter);
+      const result = await advertiseCollection.deleteOne(filter);
+      res.send(result)
+    })
 
 
     //  get categories 
