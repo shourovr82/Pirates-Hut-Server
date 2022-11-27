@@ -95,13 +95,10 @@ async function run() {
     app.put('/addtoadvertise', async (req, res) => {
       const advertiseItem = req.body;
       const id = req.query.id;
-
       const filter = {
         _id: ObjectId(id)
       }
       const options = { upsert: true };
-
-
       const updatedDoc = {
         $set: {
           category: advertiseItem.category,
@@ -117,11 +114,11 @@ async function run() {
           postdate: advertiseItem.postdate,
           price: advertiseItem.price,
           availibility: advertiseItem.availibility,
-          advertise: 'advertised'
+          advertise: 'advertised',
+          image: advertiseItem.image
         }
       }
       const result = await advertiseCollection.updateOne(filter, updatedDoc, options);
-
       res.send(result);
     })
 
@@ -247,6 +244,21 @@ async function run() {
       res.send(allusers);
     })
 
+    // use admin hook
+    app.get('/users/admin/:email', async (req, res) => {
+      const email = req.params?.email;
+      const query = { email: email }
+      const user = await userCollection.findOne(query);
+      res.send({ isAdmin: user?.accountType === 'Admin' });
+    })
+
+    // use seller verify
+    app.get('/users/seller/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      res.send({ isSeller: user?.accountType === 'Seller' });
+    })
 
 
     //  get all sellers 
@@ -485,12 +497,10 @@ async function run() {
 
 
     // payments
-    app.post('/payments', async (req, res) => {
+    app.put('/payments', async (req, res) => {
       const payment = req.body;
-      const result = await paymentsCollection.insertOne(payment);
-      const id = payment.productId;
 
-      console.log(payment);
+      const id = payment.productId;
       const filter = { _id: ObjectId(id) }
       const options = { upsert: true }
       const bookedfilter = { productId: id }
@@ -500,7 +510,8 @@ async function run() {
           transactionId: payment.transactionId
         }
       }
-      console.log(id);
+      const result = await paymentsCollection.updateOne(filter, updatedDoc, options);
+
       const updatedResult = await bookedItemCollection.updateOne(bookedfilter, updatedDoc)
       const updateProduct = {
         $set: {
