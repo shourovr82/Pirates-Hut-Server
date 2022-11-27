@@ -301,7 +301,7 @@ async function run() {
     //add to wishlist
     app.put('/addtowishlist', async (req, res) => {
       const product = req.body;
-      // const result = await wishlistCollection.insertOne(product);
+      console.log(req.body);
       const id = product._id;
       const filter = {
         _id: ObjectId(id)
@@ -316,10 +316,10 @@ async function run() {
           title: product.title,
           sellername: product.sellername,
           description: product.description,
-          email: product.email,
           purchaseyear: product.purchaseyear,
           originalprice: product.originalprice,
-          productId: product._id
+          productId: product._id,
+          email: product.buyeremail
 
         }
       }
@@ -330,6 +330,28 @@ async function run() {
 
 
 
+    // get all wishlis
+
+    app.get('/wishlistitems/:email', async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const query = {
+        email: email
+      }
+      const result = await wishlistCollection.find(query).toArray();
+      res.send(result)
+    })
+
+    // delete wishlist
+    app.delete('/deletewishlist/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: ObjectId(id)
+      }
+      console.log(query);
+      const result = await wishlistCollection.deleteOne(query);
+      res.send(result)
+    })
 
 
 
