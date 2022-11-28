@@ -124,7 +124,7 @@ async function run() {
 
 
     // get all adertised items 
-    app.get('/advertisedItem', async (req, res) => {
+    app.get('/advertisedItem', verifyJWT, async (req, res) => {
       const query = {
         advertise: 'advertised'
       }
@@ -277,6 +277,21 @@ async function run() {
       res.send(sellers)
     })
 
+    // promote user 
+    app.patch('/setaccounttype/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) }
+      const updatedDoc = {
+        $set: {
+          accountType: 'Admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
+
+
+
 
     //  verify seller
     app.put('/verifyuser/:id', async (req, res) => {
@@ -401,6 +416,16 @@ async function run() {
       const result = await userCollection.deleteOne(filter);
       res.send(result);
     })
+
+    // delete users 
+    app.delete('/deleteuser/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: ObjectId(id) }
+      const result = await userCollection.deleteOne(filter);
+      res.send(result)
+    })
+
 
     // delete my orders 
     app.delete('/deleteorder/:id', async (req, res) => {
