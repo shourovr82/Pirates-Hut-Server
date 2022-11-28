@@ -124,7 +124,7 @@ async function run() {
 
 
     // get all adertised items 
-    app.get('/advertisedItem', verifyJWT, async (req, res) => {
+    app.get('/advertisedItem', async (req, res) => {
       const query = {
         advertise: 'advertised'
       }
@@ -482,7 +482,10 @@ async function run() {
         category: category
       }
       const products = await productsCollection.find(query).toArray();
-      res.send(products)
+      const matchedData = products.filter(payment => {
+        return payment.paymentStatus !== true;
+      })
+      res.send(matchedData)
     })
 
 
